@@ -1,0 +1,698 @@
+import os
+import json
+import pandas as pd
+import sql
+import mysql.connector
+import plotly.express as px
+import requests
+
+#aggre_transaction
+
+path1="C:/Users/UMARANI/pulse/data/aggregated/transaction/country/india/state/"
+agg_tran_list= os.listdir(path1)
+
+columns1={"States":[],"Year":[],"Quarter":[],"Transaction_type":[],"Transaction_count":[],"Transaction_amount":[]}
+for state in agg_tran_list:
+    cur_states=path1+state+"/"
+    agg_year_list= os.listdir(cur_states)
+
+    for year in agg_year_list:
+        cur_year=cur_states+year+"/"
+        agg_file_list=os.listdir(cur_year)
+        
+
+        for file in agg_file_list:
+            cur_file=cur_year+file
+            data=open(cur_file,"r")
+
+            A=json.load(data)
+            for i in A["data"]["transactionData"]:
+                name=i["name"]
+                count=i["paymentInstruments"][0]["count"]
+                amount=i["paymentInstruments"][0]["amount"]
+                columns1["Transaction_type"].append(name)
+                columns1["Transaction_count"].append(count)
+                columns1["Transaction_amount"].append(amount)
+                columns1["States"].append(state)
+                columns1["Year"].append(year)
+                columns1["Quarter"].append(int(file.strip(".json")))
+                        
+
+
+
+aggre_transaction=pd.DataFrame(columns1)
+
+aggre_transaction["States"] = aggre_transaction["States"].str.replace('andaman-&-nicobar-islands','Andaman & Nicobar' )
+aggre_transaction["States"] = aggre_transaction["States"].str.replace('-'," ")
+aggre_transaction["States"] = aggre_transaction["States"].str.title()
+aggre_transaction["States"] = aggre_transaction["States"].str.replace('Dadra & Nagar Haveli & Daman & Diu ','Dadra and Nagar Haveli and Daman and Diu' )
+
+aggre_transaction
+#aggre_user
+
+path2="C:/Users/UMARANI/pulse/data/aggregated/user/country/india/state/"
+agg_user_list= os.listdir(path2)
+
+columns2={"States":[],"Year":[],"Quarter":[],"Brands":[],"Transaction_count":[],"Percentage":[]}
+for state in agg_tran_list:
+    cur_states=path2+state+"/"
+    agg_year_list= os.listdir(cur_states)
+
+    for year in agg_year_list:
+        cur_year=cur_states+year+"/"
+        agg_file_list=os.listdir(cur_year)
+        
+
+        for file in agg_file_list:
+            cur_file=cur_year+file
+            data=open(cur_file,"r")
+
+            B=json.load(data)
+
+            try:
+                for i in B["data"]["usersByDevice"]:
+                    brand=i["brand"]
+                    count=i["count"]
+                    percentage=i["percentage"]
+                    columns2["Brands"].append(brand)
+                    columns2["Transaction_count"].append(count)
+                    columns2["Percentage"].append(percentage)
+                    columns2["States"].append(state)
+                    columns2["Year"].append(year)
+                    columns2["Quarter"].append(int(file.strip(".json")))
+
+            except:
+                pass
+
+
+            
+aggre_user=pd.DataFrame(columns2)
+
+aggre_user["States"] = aggre_user["States"].str.replace('andaman-&-nicobar-islands','Andaman & Nicobar' )
+aggre_user["States"] = aggre_user["States"].str.replace('-'," ")
+aggre_user["States"] = aggre_user["States"].str.title()
+aggre_user["States"] = aggre_user["States"].str.replace('Dadra & Nagar Haveli & Daman & Diu ','Dadra and Nagar Haveli and Daman and Diu' )
+
+aggre_user
+path3="C:/Users/UMARANI/pulse/data/map/transaction/hover/country/india/state/"
+
+map_tran_list= os.listdir(path3)
+
+columns3={"States":[],"Year":[],"Quarter":[],"Districts":[],"Transaction_count":[],"Transaction_amount":[]}
+for state in map_tran_list:
+    cur_states=path3+state+"/"
+    agg_year_list= os.listdir(cur_states)
+
+    for year in agg_year_list:
+        cur_year=cur_states+year+"/"
+        agg_file_list=os.listdir(cur_year)
+        
+
+        for file in agg_file_list:
+            cur_file=cur_year+file
+            data=open(cur_file,"r")
+
+            C=json.load(data)
+
+            for i in C["data"]["hoverDataList"]:
+                    name=i["name"]
+                    count=i["metric"][0]["count"]
+                    amount=i["metric"][0]["amount"]
+                    columns3["Districts"].append(name)
+                    columns3["Transaction_count"].append(count)
+                    columns3["Transaction_amount"].append(amount)
+                    columns3["States"].append(state)
+                    columns3["Year"].append(year)
+                    columns3["Quarter"].append(int(file.strip(".json")))
+            
+
+map_tran=pd.DataFrame(columns3)
+
+map_tran["States"] = aggre_user["States"].str.replace('andaman-&-nicobar-islands','Andaman & Nicobar' )
+map_tran["States"] = aggre_user["States"].str.replace('-'," ")
+map_tran["States"] = aggre_user["States"].str.title()
+map_tran["States"] = aggre_user["States"].str.replace('Dadra & Nagar Haveli & Daman & Diu ','Dadra and Nagar Haveli and Daman and Diu' )
+
+map_tran
+#map user
+
+path4="C:/Users/UMARANI/pulse/data/map/user/hover/country/india/state/"
+
+map_user_list= os.listdir(path4)
+
+columns4={"States":[],"Year":[],"Quarter":[],"Districts":[],"RegisteredUsers":[],"AppOpens":[]}
+for state in map_user_list:
+    cur_states=path4+state+"/"
+    agg_year_list= os.listdir(cur_states)
+
+    for year in agg_year_list:
+        cur_year=cur_states+year+"/"
+        agg_file_list=os.listdir(cur_year)
+        
+
+        for file in agg_file_list:
+            cur_file=cur_year+file
+            data=open(cur_file,"r")
+
+            D=json.load(data)
+
+            for i in D["data"]["hoverData"].items():
+                district=i[0]
+                registeredUsers=i[1]["registeredUsers"]
+                appOpens=i[1]["appOpens"]
+                columns4["Districts"].append(district)
+                columns4["RegisteredUsers"].append(registeredUsers)
+                columns4["AppOpens"].append(appOpens)
+                columns4["States"].append(state)
+                columns4["Year"].append(year)
+                columns4["Quarter"].append(int(file.strip(".json")))
+
+map_user=pd.DataFrame(columns4)
+
+map_user["States"] = map_user["States"].str.replace('andaman-&-nicobar-islands','Andaman & Nicobar' )
+map_user["States"] = map_user["States"].str.replace('-'," ")
+map_user["States"] = map_user["States"].str.title()
+map_user["States"] = map_user["States"].str.replace('Dadra & Nagar Haveli & Daman & Diu ','Dadra and Nagar Haveli and Daman and Diu' )
+
+
+
+map_user
+#top_transaction
+
+path5="C:/Users/UMARANI/pulse/data/top/transaction/country/india/state/"
+
+top_tran_list= os.listdir(path5)
+
+columns5={"States":[],"Year":[],"Quarter":[],"Pincodes":[],"Transation_count":[],"Transaction_amount":[]}
+for state in top_tran_list:
+    cur_states=path5+state+"/"
+    agg_year_list= os.listdir(cur_states)
+
+    for year in agg_year_list:
+        cur_year=cur_states+year+"/"
+        agg_file_list=os.listdir(cur_year)
+        
+
+        for file in agg_file_list:
+            cur_file=cur_year+file
+            data=open(cur_file,"r")
+
+            E=json.load(data)
+
+            for i in E["data"]["pincodes"]:
+                entityname=i["entityName"]
+                count=i["metric"]["count"]
+                amount=i["metric"]["count"]
+                columns5["Pincodes"].append(entityname)
+                columns5["Transation_count"].append(count)
+                columns5["Transaction_amount"].append(amount)
+                columns5["States"].append(state)
+                columns5["Year"].append(year)
+                columns5["Quarter"].append(int(file.strip(".json")))
+top_transaction=pd.DataFrame(columns5)
+
+top_transaction["States"] = top_transaction["States"].str.replace('andaman-&-nicobar-islands','Andaman & Nicobar' )
+top_transaction["States"] = top_transaction["States"].str.replace('-'," ")
+top_transaction["States"] = top_transaction["States"].str.title()
+top_transaction["States"] = top_transaction["States"].str.replace('Dadra & Nagar Haveli & Daman & Diu ','Dadra and Nagar Haveli and Daman and Diu' )
+
+top_transaction
+# top user
+
+path6="C:/Users/UMARANI/pulse/data/top/user/country/india/state/"
+
+top_user_list= os.listdir(path6)
+
+columns6={"States":[],"Year":[],"Quarter":[],"Pincodes":[],"RegisteredUsers":[]}
+for state in top_user_list:
+    cur_states=path6+state+"/"
+    agg_year_list= os.listdir(cur_states)
+
+    for year in agg_year_list:
+        cur_year=cur_states+year+"/"
+        agg_file_list=os.listdir(cur_year)
+        
+
+        for file in agg_file_list:
+            cur_file=cur_year+file
+            data=open(cur_file,"r")
+
+            F=json.load(data)
+
+            for i in F["data"]["pincodes"]:
+                entityname=i["name"]
+                registeredusers=i["registeredUsers"]
+                columns6["Pincodes"].append(entityname)
+                columns6["RegisteredUsers"].append(registeredusers)
+                columns6["States"].append(state)
+                columns6["Year"].append(year)
+                columns6["Quarter"].append(int(file.strip(".json")))
+
+top_user=pd.DataFrame(columns6)
+
+top_user["States"] = top_user["States"].str.replace('andaman-&-nicobar-islands','Andaman & Nicobar' )
+top_user["States"] = top_user["States"].str.replace('-'," ")
+top_user["States"] = top_user["States"].str.title()
+top_user["States"] = top_user["States"].str.replace('Dadra & Nagar Haveli & Daman & Diu ','Dadra and Nagar Haveli and Daman and Diu' )
+
+top_user
+#table creation 
+# sql connection
+
+mydb = mysql.connector.connect(
+        host='127.0.0.1',
+        user='root',
+        port=3306,
+        password='Umarani@6383',
+        database='phonepy_data')
+cursor=mydb.cursor()
+
+#aggre_transaction
+
+create_query_1='''CREATE TABLE if not exists aggregated_transaction(States varchar(255),
+                    Years int,
+                    Quarter int,
+                    Transaction_type varchar(255),
+                    Transation_count bigint,
+                    Transaction_amount bigint)'''
+
+cursor.execute(create_query_1)
+mydb.commit()
+
+insert_query_1='''INSERT INTO aggregated_transaction(States, Years, Quarter , Transaction_type,  Transation_count , Transaction_amount )
+                  values(%s,%s,%s,%s,%s,%s)'''
+
+data=aggre_transaction.values.tolist()
+cursor.executemany(insert_query_1,data)
+mydb.commit()
+
+
+mydb = mysql.connector.connect(
+        host='127.0.0.1',
+        user='root',
+        port=3306,
+        password='Umarani@6383',
+        database='phonepy_data')
+cursor=mydb.cursor()
+
+#aggre_user
+
+create_query_2='''CREATE TABLE if not exists aggregated_user(States varchar(255),
+                    Years int,
+                    Quarter int,
+                    Brands varchar(255),
+                    Transation_count bigint,
+                    Percentage float)'''
+
+cursor.execute(create_query_2)
+mydb.commit()
+
+insert_query_2='''INSERT INTO aggregated_user(States, Years, Quarter , Brands,  Transation_count , Percentage )
+                  values(%s,%s,%s,%s,%s,%s)'''
+
+data=aggre_user.values.tolist()
+cursor.executemany(insert_query_2,data)
+mydb.commit()
+mydb = mysql.connector.connect(
+        host='127.0.0.1',
+        user='root',
+        port=3306,
+        password='Umarani@6383',
+        database='phonepy_data')
+cursor=mydb.cursor()
+
+#map_transaction
+
+create_query_3='''CREATE TABLE if not exists map_transation(States varchar(255),
+                    Years int,
+                    Quarter int,
+                    Districts varchar(255),
+                    Transation_count bigint,
+                    Transaction_amount float)'''
+
+cursor.execute(create_query_3)
+mydb.commit()
+
+insert_query_3='''INSERT INTO map_transation(States, Years, Quarter , Districts,  Transation_count , Transaction_amount )
+                  values(%s,%s,%s,%s,%s,%s)'''
+
+data = map_tran.fillna(value='NULL').values.tolist()
+cursor.executemany(insert_query_3,data)
+mydb.commit()
+mydb = mysql.connector.connect(
+        host='127.0.0.1',
+        user='root',
+        port=3306,
+        password='Umarani@6383',
+        database='phonepy_data')
+cursor=mydb.cursor()
+
+#map_user
+
+create_query_4='''CREATE TABLE if not exists map_user(States varchar(255),
+                    Years int,
+                    Quarter int,
+                    Districts varchar(255),
+                    RegisteredUsers bigint,
+                    AppOpens bigint)'''
+
+cursor.execute(create_query_4)
+mydb.commit()
+
+insert_query_4='''INSERT INTO map_user(States, Years, Quarter , Districts,  RegisteredUsers , AppOpens )
+                  values(%s,%s,%s,%s,%s,%s)'''
+
+data=map_user.values.tolist()
+cursor.executemany(insert_query_4,data)
+mydb.commit()
+mydb = mysql.connector.connect(
+        host='127.0.0.1',
+        user='root',
+        port=3306,
+        password='Umarani@6383',
+        database='phonepy_data')
+cursor=mydb.cursor()
+
+#top_transaction
+
+create_query_5='''CREATE TABLE if not exists top_transaction(States varchar(255),
+                    Years int,
+                    Quarter int,
+                    Pincodes bigint(255),
+                    Transation_count bigint,
+                    Transaction_amount float)'''
+
+cursor.execute(create_query_5)
+mydb.commit()
+
+insert_query_5='''INSERT INTO top_transaction(States, Years, Quarter , Pincodes,  Transation_count , Transaction_amount )
+                  values(%s,%s,%s,%s,%s,%s)'''
+
+data=top_transaction.values.tolist()
+cursor.executemany(insert_query_5,data)
+mydb.commit()
+top_transaction
+mydb = mysql.connector.connect(
+        host='127.0.0.1',
+        user='root',
+        port=3306,
+        password='Umarani@6383',
+        database='phonepy_data')
+cursor=mydb.cursor()
+
+#top user
+
+create_query_6='''CREATE TABLE if not exists top_user(States varchar(255),
+                    Years int,
+                    Quarter int,
+                    Pincodes bigint(255),
+                    RegisteredUsers bigint)'''
+
+cursor.execute(create_query_6)
+mydb.commit()
+
+insert_query_6='''INSERT INTO top_user(States, Years, Quarter , Pincodes,  RegisteredUsers  )
+                  values(%s,%s,%s,%s,%s)'''
+
+data=top_user.values.tolist()
+cursor.executemany(insert_query_6,data)
+mydb.commit()
+
+mydb = mysql.connector.connect(
+        host='127.0.0.1',
+        user='root',
+        port=3306,
+        password='Umarani@6383',
+        database='phonepy_data')
+cursor=mydb.cursor()
+
+#aggre_transaction
+
+cursor.execute("select * from aggregated_transaction")
+
+table1 =cursor.fetchall()
+
+Aggre_transaction=pd.DataFrame(table1, columns=("States","Years","Quarter","Transaction_type","Transation_count","Transaction_amount"))
+
+mydb.commit()
+
+#aggre_user
+
+cursor.execute("select * from aggregated_user")
+
+table2 =cursor.fetchall()
+
+aggregated_user=pd.DataFrame(table2, columns=("States","Years","Quarter","Transaction_type","Transation_count","Transaction_amount"))
+
+mydb.commit()
+
+#map transacation
+
+cursor.execute("select * from map_transation")
+
+table3 =cursor.fetchall()
+
+map_transaction=pd.DataFrame(table3, columns=("States", "Years", "Quarter" , "Districts",  "Transation_count" , "Transaction_amount" ))
+mydb.commit()
+
+                            
+#map user
+
+
+cursor.execute("select * from map_user")
+
+table4 =cursor.fetchall()
+
+map_user=pd.DataFrame(table4, columns=("States", "Years", "Quarter" , "Districts",  "RegisteredUsers" , "AppOpens" ))
+mydb.commit() 
+
+#top transaction
+
+cursor.execute("select * from top_transaction")
+
+table5 =cursor.fetchall()
+
+top_transaction=pd.DataFrame(table5, columns=("States", "Years", "Quarter" , "Pincodes",  "Transation_count" , "Transaction_amount" ))
+mydb.commit() 
+
+#top user
+
+cursor.execute("select * from top_user")
+
+table6 =cursor.fetchall()
+
+top_user=pd.DataFrame(table6, columns=("States", "Years", "Quarter" , "Pincodes",  "RegisteredUsers" ))
+mydb.commit() 
+
+
+
+
+
+
+                            
+        
+                            
+                            
+
+
+
+def top_chart_transation_amount(table_name):
+    
+        mydb = mysql.connector.connect(
+                host='127.0.0.1',
+                user='root',
+                port=3306,
+                password='Umarani@6383',
+                database='phonepy_data')
+        cursor=mydb.cursor()
+        #plot1
+        query1=f'''select States,sum(Transaction_amount) as Transaction_amount
+                from {table_name}
+                group by States
+                order by Transaction_amount desc
+                limit 10;'''
+
+        cursor.execute(query1)
+        table1=cursor.fetchall()
+        mydb.commit()
+
+        df1=pd.DataFrame(table1,columns=("States","Transaction_amount"))
+        fig_amount =px.bar(df1, x="States", y="Transaction_amount", title=f"TRANSACTION AMOUNT",
+                        color_discrete_sequence=px.colors.sequential.Magma)
+        fig_amount.show()
+
+        #plot2
+
+        query2=f'''select States,sum(Transaction_amount) as Transaction_amount
+                        from {table_name}
+                        group by States
+                        order by Transaction_amount 
+                        limit 10;'''
+        cursor.execute(query2)
+        table2=cursor.fetchall()
+        mydb.commit()
+
+        df2=pd.DataFrame(table2,columns=("States","Transaction_amount"))
+        fig_amount =px.bar(df2, x="States", y="Transaction_amount", title=f"TRANSACTION AMOUNT",
+                        color_discrete_sequence=px.colors.sequential.Purples)
+        fig_amount.show()
+
+        #plot3
+
+        query3=f'''select States,avg(Transaction_amount) as Transaction_amount
+                        from {table_name}
+                        group by States
+                        order by Transaction_amount;'''
+        cursor.execute(query3)
+        table3=cursor.fetchall()
+        mydb.commit()
+
+        df3=pd.DataFrame(table3,columns=("States","Transaction_amount"))
+        fig_amount =px.bar(df3, x="States", y="Transaction_amount", title=f"TRANSACTION AMOUNT",
+                        color_discrete_sequence=px.colors.sequential.Rainbow)
+        fig_amount.show()
+
+top_chart_transation_amount("map_transation")
+
+top_transaction
+def Transaction_amount_count_Y(df, year):
+
+    tacy = df[df["Years"] ==year]
+
+    tacy.reset_index(drop=True, inplace=True)
+
+    tacyg=tacy.groupby("States")[["Transation_count","Transaction_amount"]].sum()
+
+    tacyg.reset_index(inplace=True)
+
+    fig_amount =px.bar(tacyg, x="States", y="Transaction_amount", title=f"{year} TRANSACTION AMOUNT",
+                    color_discrete_sequence=px.colors.sequential.Magma)
+    fig_amount.show()
+
+    fig_count=px.bar(tacyg, x="States", y="Transation_count", title=f"{year} TRANSACTION COUNT",
+                    color_discrete_sequence=px.colors.sequential.Bluered_r)
+    fig_count.show()
+
+    url = "https://gist.githubusercontent.com/jbrobst/56c13bbbf9d97d187fea01ca62ea5112/raw/e388c4cae20aa53cb5090210a42ebb9b765c0a36/india_states.geojson"
+    response= requests.get(url)
+    data1=json.loads(response.content)
+    states_name=[]
+    for future in data1["features"]:
+        states_name.append(future["properties"]["ST_NM"])
+
+    states_name.sort()
+
+    fig_india_1=px.choropleth(tacyg, geojson=data1, locations="States", featureidkey="properties.ST_NM",
+                              color="Transaction_amount",color_continuous_scale="Rainbow",
+                               range_color=(tacyg["Transaction_amount"].min(),tacyg["Transaction_amount"].max() ),
+                               hover_name="States",title=f"{year} TRANSACTION AMOUNT",fitbounds="locations")
+    
+    fig_india_1.update_geos(visible=False)
+    
+    fig_india_1.show()
+
+    fig_india_2=px.choropleth(tacyg, geojson=data1, locations="States", featureidkey="properties.ST_NM",
+                              color="Transation_count",color_continuous_scale="Rainbow",
+                               range_color=(tacyg["Transation_count"].min(),tacyg["Transation_count"].max() ),
+                               hover_name="States",title=f"{year} TRANSACTION COUNT ",fitbounds="locations")
+    
+    fig_india_2.update_geos(visible=False)
+    
+    fig_india_2.show()
+
+Transaction_amount_count_Y(Aggre_transaction,2021)
+Aggre_transaction["Years"].max()
+Aggre_transaction
+Aggre_transaction
+aggregated_user
+map_transaction
+
+def top_chart_transation_count(table_name):
+    
+        mydb = mysql.connector.connect(
+                host='127.0.0.1',
+                user='root',
+                port=3306,
+                password='Umarani@6383',
+                database='phonepy_data')
+        cursor=mydb.cursor()
+        #plot1
+        query1=f'''select States,sum(Transation_count) as Transation_count
+                        from aggregated_transaction
+                        group by States
+                        order by Transation_count desc
+                        limit 10;'''
+
+        cursor.execute(query1)
+        table1=cursor.fetchall()
+        mydb.commit()
+
+        df1=pd.DataFrame(table1,columns=("States","Transation_count"))
+        fig_amount =px.bar(df1, x="States", y="Transation_count", title=f"TRANSACTION COUNT",
+                        color_discrete_sequence=px.colors.sequential.Magma)
+        fig_amount.show()
+
+        #plot2
+
+        query2=f'''select States,sum(Transation_count) as Transation_count
+                        from {table_name}
+                        group by States
+                        order by Transation_count 
+                        limit 10;'''
+        cursor.execute(query2)
+        table2=cursor.fetchall()
+        mydb.commit()
+
+        df2=pd.DataFrame(table2,columns=("States","Transation_count"))
+        fig_amount =px.bar(df2, x="States", y="Transation_count", title=f"TRANSACTION COUNT",
+                        color_discrete_sequence=px.colors.sequential.Purples)
+        fig_amount.show()
+
+        #plot3
+
+        query3=f'''select States,avg(Transation_count) as Transation_count
+                        from {table_name}
+                        group by States
+                        order by Transation_count;'''
+        cursor.execute(query3)
+        table3=cursor.fetchall()
+        mydb.commit()
+
+        df3=pd.DataFrame(table3,columns=("States","Transation_count"))
+        fig_amount =px.bar(df3, x="States", y="Transation_count", title=f"TRANSACTION COUNT",
+                        color_discrete_sequence=px.colors.sequential.Rainbow)
+        fig_amount.show()
+top_chart_transation_count("map_transation")
+def map_users(df, year):
+
+    MU = df[df["Years"] ==year]
+
+    MU.reset_index(drop=True, inplace=True)
+
+    MU=MU.groupby("States")[["RegisteredUsers","RegisteredUsers"]].sum()
+
+    MU.reset_index(inplace=True)
+
+    fig_amount =px.bar(MU, x="States", y="RegisteredUsers", title=f"{year} RegisteredUsers",
+                    color_discrete_sequence=px.colors.sequential.Magma)
+    fig_amount.show()
+
+    fig_count=px.bar(MU, x="States", y="RegisteredUsers", title=f"{year} RegisteredUsers",
+                    color_discrete_sequence=px.colors.sequential.Bluered_r)
+    fig_count.show()
+
+map_user
+def map_users(year):
+    MU=map_user[map_user["Years"]==year]
+    MU.reset_index(drop=True,inplace=True)
+    mug=MU.groupby("States")[["RegisteredUsers","AppOpens"]].sum()
+    mug.reset_index(inplace=True)
+    fig_line_1=px.line(mug,x="States",y=["RegisteredUsers","AppOpens"],title="REGISTEREDUSERS",markers=True)
+    fig_line_1.show()
+
+    return mug
+
+
+
+map_users(2018)
+map_user
